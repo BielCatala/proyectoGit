@@ -25,7 +25,8 @@ jobs:
           git config user.email "github-actions@github.com"
           git add README.md
           git commit -m "Actualizar README" || echo "Sin cambios"
-          git push
+          git pull --rebase origin develop
+          git push origin develop
 
   validate-dev:
     needs: update-readme
