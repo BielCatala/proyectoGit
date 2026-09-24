@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [develop]
+    types: [opened, synchronize, reopened]
+  push:
+    branches: [develop]
+  workflow_dispatch:
+
+jobs:
+  update-readme:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Actualizar README
+        run: |
+          echo "Añadida feature: ${{ github.head_ref || github.ref_name }}" >> README.md
+
+      - name: Guardar cambios
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add README.md
+          git commit -m "Actualizar README" || echo "Sin cambios"
+          git push
+
+  validate-dev:
+    needs: update-readme
+    runs-on: self-hosted
+
+    steps:
+      - name: Validar DEV_TOKEN
+        shell: powershell
+        run: |
+          if ("${{ secrets.DEV_TOKEN }}" -ne "$env:LOCAL_DEV_TOKEN") {
+            Write-Error "DEV_TOKEN no coincide"
+            exit 1
+          }
+          Write-Host "DEV_TOKEN coincide correctamente"
